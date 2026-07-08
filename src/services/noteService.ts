@@ -19,9 +19,6 @@ export interface FetchNotesParams {
 export interface FetchNotesResponse {
   notes: Note[];
   totalPages: number;
-  currentPage: number;
-  perPage: number;
-  totalItems: number;
 }
 
 export interface CreateNotePayload {
@@ -30,11 +27,17 @@ export interface CreateNotePayload {
   tag: NoteTag;
 }
 
-export const fetchNotes = async (
-  params: FetchNotesParams,
-): Promise<FetchNotesResponse> => {
+export const fetchNotes = async ({
+  page,
+  perPage,
+  search,
+}: FetchNotesParams): Promise<FetchNotesResponse> => {
   const { data } = await noteHubApi.get<FetchNotesResponse>('/notes', {
-    params,
+    params: {
+      page,
+      perPage,
+      ...(search ? { search } : {}),
+    },
   });
 
   return data;

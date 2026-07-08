@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useDebouncedCallback } from 'use-debounce';
 import css from './App.module.css';
 import { fetchNotes } from '../../services/noteService';
@@ -27,7 +27,7 @@ export default function App() {
     updateSearch(value);
   };
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isFetching } = useQuery({
     queryKey: ['notes', debouncedSearch, currentPage],
     queryFn: () =>
       fetchNotes({
@@ -35,6 +35,7 @@ export default function App() {
         perPage: PER_PAGE,
         search: debouncedSearch || undefined,
       }),
+    placeholderData: keepPreviousData,
   });
 
   return (
@@ -43,12 +44,12 @@ export default function App() {
         <SearchBox value={searchValue} onSearch={handleSearch} />
 
         {data && data.totalPages > 1 && (
-          <Pagination
-            pageCount={data.totalPages}
-            currentPage={currentPage}
-            onPageChange={setCurrentPage}
-          />
-        )}
+  <Pagination
+    totalPages={data.totalPages}
+    currentPage={currentPage}
+    onPageChange={setCurrentPage}
+  />
+)}
 
         <button
           className={css.button}
@@ -61,6 +62,7 @@ export default function App() {
 
       {isLoading && <p>Loading...</p>}
       {isError && <p>Something went wrong. Please reload the page.</p>}
+      {isFetching && !isLoading && <p>Updating...</p>}
 
       {data && data.notes.length > 0 && <NoteList notes={data.notes} />}
 
